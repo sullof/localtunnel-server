@@ -64,6 +64,28 @@ export default function(opt) {
         ctx.body = info;
     });
 
+    router.get('/api/v1/courier/*', async (ctx, next) => {
+
+        const hostname = ctx.request.headers.host;
+        const clientId = GetClientIdFromHostname(hostname);
+
+        if (!clientId) {
+            appCallback(req, res);
+            return;
+        }
+
+        const client = manager.getClient(clientId);
+
+        if (!client) {
+            res.statusCode = 404;
+            res.end('404');
+            return;
+        }
+
+        client.handleRequest(ctx.request, ctx.response);
+
+    })
+
     app.use(router.routes());
     app.use(router.allowedMethods());
 
@@ -71,8 +93,10 @@ export default function(opt) {
     app.use(async (ctx, next) => {
         const path = ctx.request.path;
 
+        const hostname = ctx.request.headers.host;
+
         // skip anything not on the root path
-        if (path !== '/') {
+        if (path !== '/' || GetClientIdFromHostname(hostname)) {
             await next();
             return;
         }
@@ -82,7 +106,7 @@ export default function(opt) {
         } else {
             ctx.body = {
                 welcome_to: `Secrez Hub v${version}`,
-                more_info_at: 'https://secrez.github.io/secrez' //'https://secrez.io'
+                more_info_at: 'https://secrez.github.io/secrez'
             }
             return;
         }
