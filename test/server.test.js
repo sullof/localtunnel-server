@@ -6,7 +6,7 @@ const WebSocketServer = Server;
 const WebSocket = require('ws');
 const net = require('net');
 
-const createServer = require('../server');
+const createServer = require('../src/server');
 
 describe('Server', () => {
   it('server starts and stops', async () => {

@@ -7,7 +7,7 @@ const {Duplex} = require('stream');
 const WebSocket = require('ws');
 const net = require('net');
 
-const Client = require('../../lib/Client');
+const Client = require('../../src/lib/Client');
 
 class DummySocket extends Duplex {
   constructor(options) {

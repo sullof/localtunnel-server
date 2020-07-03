@@ -3,7 +3,7 @@ const assert = chai.assert;
 
 const net = require('net');
 
-const ClientManager = require('../../lib/ClientManager');
+const ClientManager = require('../../src/lib/ClientManager');
 
 describe('ClientManager', () => {
     it('should construct with no tunnels', () => {
