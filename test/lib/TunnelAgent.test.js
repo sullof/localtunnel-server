@@ -1,8 +1,10 @@
-import http from 'http';
-import net from 'net';
-import assert from 'assert';
+const http = require('http');
+const net = require('net');
+const chai = require('chai');
+const assert = chai.assert;
 
-import TunnelAgent from './TunnelAgent';
+
+const TunnelAgent = require('../../lib/TunnelAgent');
 
 describe('TunnelAgent', () => {
     it('should create an empty agent', async () => {
@@ -152,7 +154,7 @@ describe('TunnelAgent', () => {
             constructor() {
                 super();
             }
-        
+
             createConnection(options, cb) {
                 cb(new Error('foo'));
             }

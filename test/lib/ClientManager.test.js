@@ -1,7 +1,9 @@
-import assert from 'assert';
-import net from 'net';
+const chai = require('chai');
+const assert = chai.assert;
 
-import ClientManager from './ClientManager';
+const net = require('net');
+
+const ClientManager = require('../../lib/ClientManager');
 
 describe('ClientManager', () => {
     it('should construct with no tunnels', () => {
