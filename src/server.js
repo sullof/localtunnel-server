@@ -64,28 +64,6 @@ module.exports =  function(opt) {
         ctx.body = info;
     });
 
-    // router.get('/api/v1/courier/*', async (ctx, next) => {
-    //
-    //     const hostname = ctx.request.headers.host;
-    //     const clientId = GetClientIdFromHostname(hostname);
-    //
-    //     if (!clientId) {
-    //         appCallback(req, res);
-    //         return;
-    //     }
-    //
-    //     const client = manager.getClient(clientId);
-    //
-    //     if (!client) {
-    //         res.statusCode = 404;
-    //         res.end('404');
-    //         return;
-    //     }
-    //
-    //     client.handleRequest(ctx.request, ctx.response);
-    //
-    // })
-
     app.use(router.routes());
     app.use(router.allowedMethods());
 
