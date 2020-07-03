@@ -5,7 +5,8 @@ WORKDIR /app
 COPY package.json /app/
 COPY package-lock.json /app/
 
-RUN npm i --production && npm cache clean
+RUN npm i --production
+#&& npm cache clean
 
 COPY . /app
 
