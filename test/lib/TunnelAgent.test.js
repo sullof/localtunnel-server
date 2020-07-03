@@ -4,7 +4,7 @@ const chai = require('chai');
 const assert = chai.assert;
 
 
-const TunnelAgent = require('../../lib/TunnelAgent');
+const TunnelAgent = require('../../src/lib/TunnelAgent');
 
 describe('TunnelAgent', () => {
     it('should create an empty agent', async () => {

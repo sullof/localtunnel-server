@@ -4,7 +4,7 @@ const tldjs = require('tldjs');
 const Debug = require('debug');
 const http = require('http');
 const Router = require('koa-router');
-const {version} = require('./package.json');
+const {version} = require('../package.json');
 const {Crypto} = require('@secrez/core');
 
 const ClientManager = require('./lib/ClientManager');

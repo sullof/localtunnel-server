@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 
 require('localenv');
 const optimist = require('optimist');
@@ -6,7 +5,7 @@ const optimist = require('optimist');
 const log = require('book');
 const Debug = require('debug');
 
-const CreateServer = require('../server');
+const CreateServer = require('./src/server');
 
 const debug = Debug('localtunnel');
 
