@@ -3,7 +3,7 @@ const {Agent} = require('http');
 const net = require('net');
 const assert = require('assert');
 const log = require('book');
-const Debug = require('debug');
+const Debug = require('../utils/Debug');
 
 const DEFAULT_MAX_SOCKETS = 10;
 

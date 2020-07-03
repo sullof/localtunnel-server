@@ -1,6 +1,6 @@
 const {hri} = require('human-readable-ids');
 
-const Debug = require('debug');
+const Debug = require('../utils/Debug');
 
 const Client = require('./Client');
 const TunnelAgent = require('./TunnelAgent');

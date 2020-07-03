@@ -1,7 +1,7 @@
 const log = require('book');
 const Koa = require('koa');
 const tldjs = require('tldjs');
-const Debug = require('debug');
+const Debug = require('./utils/Debug');
 const http = require('http');
 const Router = require('koa-router');
 const {version} = require('../package.json');
@@ -69,7 +69,7 @@ module.exports =  function(opt) {
         ctx.body = info;
     });
 
-    router.get('/api/v1/courier/*', async (ctx, next) => {
+    router.get('/api/v1/courier/:cmd', async (ctx, next) => {
 
         const hostname = ctx.request.headers.host;
         const clientId = GetClientIdFromHostname(hostname);

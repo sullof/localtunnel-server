@@ -8,11 +8,11 @@
     "type": "git",
     "url": "git://github.com/secrez/localtunnel-server.git"
   },
+  "main": "./index.js",
   "dependencies": {
     "@secrez/core": "0.7.1",
     "book": "1.3.3",
     "chai": "4.2.0",
-    "debug": "4.1.1",
     "esm": "3.2.25",
     "human-readable-ids": "1.0.3",
     "koa": "2.13.0",
@@ -29,7 +29,7 @@
     "ws": "7.3.0"
   },
   "scripts": {
-    "test": "mocha --check-leaks --require esm 'test/**/*.test.js'",
+    "test": "NODE_ENV=test mocha --check-leaks --require esm 'test/**/*.test.js'",
     "start": "./bin/server",
     "dev": "node-dev bin/server --port 3000"
   }

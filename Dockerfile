@@ -11,4 +11,4 @@ RUN npm i --production
 COPY . /app
 
 ENV NODE_ENV production
-ENTRYPOINT ["node", "./cli.js"]
+ENTRYPOINT ["node", "./index.js"]
