@@ -3,10 +3,13 @@ import Koa from 'koa';
 import tldjs from 'tldjs';
 import Debug from 'debug';
 import http from 'http';
-import { hri } from 'human-readable-ids';
 import Router from 'koa-router';
+import {version} from './package.json';
+import {Crypto} from '@secrez/core';
 
 import ClientManager from './lib/ClientManager';
+
+const allIds = [];
 
 const debug = Debug('localtunnel:server');
 
@@ -15,7 +18,7 @@ export default function(opt) {
 
     const validHosts = (opt.domain) ? [opt.domain] : undefined;
     const myTldjs = tldjs.fromUserSettings({ validHosts });
-    const landingPage = opt.landing || 'https://localtunnel.github.io/www/';
+    const landingPage = opt.landing;
 
     function GetClientIdFromHostname(hostname) {
         return myTldjs.getSubdomain(hostname);
@@ -28,7 +31,7 @@ export default function(opt) {
     const app = new Koa();
     const router = new Router();
 
-    router.get('/api/status', async (ctx, next) => {
+    router.get('/api/v1/status', async (ctx, next) => {
         const stats = manager.stats;
         ctx.body = {
             tunnels: stats.tunnels,
@@ -36,7 +39,7 @@ export default function(opt) {
         };
     });
 
-    router.get('/api/tunnels/:id/status', async (ctx, next) => {
+    router.get('/api/v1/tunnels/:id/status', async (ctx, next) => {
         const clientId = ctx.params.id;
         const client = manager.getClient(clientId);
         if (!client) {
@@ -48,6 +51,17 @@ export default function(opt) {
         ctx.body = {
             connected_sockets: stats.connectedSockets,
         };
+    });
+
+    router.get('/api/v1/tunnel/new', async (ctx, next) => {
+        const reqId = Crypto.getRandomId(allIds);
+        allIds.push(reqId);
+        debug('making new client with id %s', reqId);
+
+        const info = await manager.newClient(reqId, debug);
+        const url = schema + '://' + info.id + '.' + ctx.request.host;
+        info.url = url;
+        ctx.body = info;
     });
 
     app.use(router.routes());
@@ -62,56 +76,51 @@ export default function(opt) {
             await next();
             return;
         }
-
-        const isNewClientRequest = ctx.query['new'] !== undefined;
-        if (isNewClientRequest) {
-            const reqId = hri.random();
-            debug('making new client with id %s', reqId);
-            const info = await manager.newClient(reqId);
-
-            const url = schema + '://' + info.id + '.' + ctx.request.host;
-            info.url = url;
-            ctx.body = info;
+        if (landingPage) {
+            // no new client request, send to landing page
+            ctx.redirect(landingPage);
+        } else {
+            ctx.body = {
+                welcome_to: `Secrez Hub v${version}`,
+                more_info_at: 'https://secrez.github.io/secrez' //'https://secrez.io'
+            }
             return;
         }
-
-        // no new client request, send to landing page
-        ctx.redirect(landingPage);
     });
 
     // anything after the / path is a request for a specific client name
     // This is a backwards compat feature
-    app.use(async (ctx, next) => {
-        const parts = ctx.request.path.split('/');
-
-        // any request with several layers of paths is not allowed
-        // rejects /foo/bar
-        // allow /foo
-        if (parts.length !== 2) {
-            await next();
-            return;
-        }
-
-        const reqId = parts[1];
-
-        // limit requested hostnames to 63 characters
-        if (! /^(?:[a-z0-9][a-z0-9\-]{4,63}[a-z0-9]|[a-z0-9]{4,63})$/.test(reqId)) {
-            const msg = 'Invalid subdomain. Subdomains must be lowercase and between 4 and 63 alphanumeric characters.';
-            ctx.status = 403;
-            ctx.body = {
-                message: msg,
-            };
-            return;
-        }
-
-        debug('making new client with id %s', reqId);
-        const info = await manager.newClient(reqId);
-
-        const url = schema + '://' + info.id + '.' + ctx.request.host;
-        info.url = url;
-        ctx.body = info;
-        return;
-    });
+    // app.use(async (ctx, next) => {
+    //     const parts = ctx.request.path.split('/');
+    //
+    //     // any request with several layers of paths is not allowed
+    //     // rejects /foo/bar
+    //     // allow /foo
+    //     if (parts.length !== 2) {
+    //         await next();
+    //         return;
+    //     }
+    //
+    //     const reqId = parts[1];
+    //
+    //     // limit requested hostnames to 63 characters
+    //     if (! /^(?:[a-z0-9][a-z0-9\-]{4,63}[a-z0-9]|[a-z0-9]{4,63})$/.test(reqId)) {
+    //         const msg = 'Invalid subdomain. Subdomains must be lowercase and between 4 and 63 alphanumeric characters.';
+    //         ctx.status = 403;
+    //         ctx.body = {
+    //             message: msg,
+    //         };
+    //         return;
+    //     }
+    //
+    //     debug('making new client with id %s', reqId);
+    //     const info = await manager.newClient(reqId);
+    //
+    //     const url = schema + '://' + info.id + '.' + ctx.request.host;
+    //     info.url = url;
+    //     ctx.body = info;
+    //     return;
+    // });
 
     const server = http.createServer();
 
@@ -127,12 +136,14 @@ export default function(opt) {
         }
 
         const clientId = GetClientIdFromHostname(hostname);
+
         if (!clientId) {
             appCallback(req, res);
             return;
         }
 
         const client = manager.getClient(clientId);
+
         if (!client) {
             res.statusCode = 404;
             res.end('404');
@@ -156,6 +167,7 @@ export default function(opt) {
         }
 
         const client = manager.getClient(clientId);
+
         if (!client) {
             socket.destroy();
             return;
