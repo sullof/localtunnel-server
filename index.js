@@ -3,7 +3,7 @@ require('localenv');
 const optimist = require('optimist');
 
 const log = require('book');
-const Debug = require('debug');
+const Debug = require('./src/utils/Debug');
 
 const CreateServer = require('./src/server');
 

@@ -1,5 +1,5 @@
 const http = require('http');
-const Debug = require('debug');
+const Debug = require('../utils/Debug');
 const pump = require('pump');
 const EventEmitter = require('events');
 
