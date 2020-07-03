@@ -12,7 +12,7 @@ const debug = Debug('localtunnel');
 const argv = optimist
     .usage('Usage: $0 --port [num]')
     .options('secure', {
-        default: false,
+        default: true,
         describe: 'use this flag to indicate proxy over https'
     })
     .options('port', {
