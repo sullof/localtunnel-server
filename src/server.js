@@ -43,7 +43,12 @@ module.exports =  function(opt) {
         const clientId = ctx.params.id;
         const client = manager.getClient(clientId);
         if (!client) {
-            ctx.throw(404);
+            const result = {
+                status_code: 404,
+                message: 'Not found'
+            }
+            ctx.status = 404;
+            ctx.body = result;
             return;
         }
 
@@ -77,11 +82,11 @@ module.exports =  function(opt) {
         const client = manager.getClient(clientId);
 
         if (!client) {
-            ctx.status = 404;
             const result = {
                 status_code: 404,
-                message: 'Not found.'
+                message: 'Not found'
             }
+            ctx.status = 404;
             ctx.body = result;
             return;
         }
@@ -159,12 +164,12 @@ module.exports =  function(opt) {
         // without a hostname, we won't know who the request is for
         const hostname = req.headers.host;
         if (!hostname) {
-            ctx.status = 400;
-            const result = {
+            res.statusCode = 400;
+            let result = {
                 status_code: 400,
                 message: 'Host header is required'
             }
-            ctx.body = result;
+            res.end(JSON.stringify(result));
             return;
         }
 
@@ -178,12 +183,12 @@ module.exports =  function(opt) {
         const client = manager.getClient(clientId);
 
         if (!client) {
-            ctx.status = 404;
-            const result = {
+            res.statusCode = 404;
+            let result = {
                 status_code: 404,
-                message: 'Not found.'
+                message: 'Not found'
             }
-            ctx.body = result;
+            res.end(JSON.stringify(result));
             return;
         }
 
