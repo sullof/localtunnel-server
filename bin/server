@@ -17,8 +17,12 @@ const argv = optimist
         describe: 'use this flag to indicate proxy over https'
     })
     .options('port', {
-        default: '80',
+        default: '9494',
         describe: 'listen on this port for outside requests'
+    })
+    .options('landing', {
+        default: null, //'https://localtunnel.github.io/www/',
+        describe: 'the url of the landing page'
     })
     .options('address', {
         default: '0.0.0.0',
@@ -42,6 +46,7 @@ const server = CreateServer({
     max_tcp_sockets: argv['max-sockets'],
     secure: argv.secure,
     domain: argv.domain,
+    landing: argv.landing
 });
 
 server.listen(argv.port, argv.address, () => {
