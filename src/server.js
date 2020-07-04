@@ -59,7 +59,7 @@ module.exports =  function(opt) {
     });
 
     router.get('/api/v1/tunnel/new', async (ctx, next) => {
-        const reqId = Crypto.getRandomId(allIds);
+        const reqId = Crypto.getRandomId(allIds).toLowerCase();
         allIds.push(reqId);
         debug('making new client with id %s', reqId);
 
