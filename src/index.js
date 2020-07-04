@@ -160,7 +160,7 @@ module.exports = function(opt) {
     let server;
 
     if (opt.secure) {
-        server = Server.get();
+        server = Server.get(app);
     } else {
         server = http.createServer();
     }

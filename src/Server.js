@@ -4,7 +4,7 @@ const https = require('https')
 
 class Server {
 
-  static get() {
+  static get(app) {
 
     if ('env' in process) {
       this.baseCert = fs.readFileSync(process.env.BASE_CERT, 'utf8')
@@ -44,7 +44,7 @@ class Server {
         key: this.baseKey,
         cert: this.baseCert
       }
-      const server = https.createServer(options);
+      const server = https.createServer(options, app.callback);
       //     , function (req, res) {
       //   res.end('Your dynamic SSL server worked!')
       //   // Here you can put proxy server routing here to send the request
