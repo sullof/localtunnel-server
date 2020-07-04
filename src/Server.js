@@ -40,7 +40,7 @@ class Server {
         key: baseKey,
         cert: baseCert
       }
-      const server = https.createServer(options, app); //, app.callback);
+      const server = https.createServer(options); //, app); //, app.callback);
       //     , function (req, res) {
       //   res.end('Your dynamic SSL server worked!')
       //   // Here you can put proxy server routing here to send the request
