@@ -10,7 +10,7 @@
   },
   "main": "./index.js",
   "dependencies": {
-    "@secrez/core": "0.7.1",
+    "@secrez/core": "^0.7.2",
     "book": "1.3.3",
     "chai": "4.2.0",
     "esm": "3.2.25",
