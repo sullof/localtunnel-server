@@ -2,7 +2,7 @@ const optimist = require('optimist');
 const log = require('book');
 const Debug = require('./src/utils/Debug');
 
-const CreateServer = require('./src/server');
+const CreateServer = require('./src');
 
 const debug = Debug('localtunnel');
 
