@@ -159,19 +159,16 @@ module.exports = function(opt) {
 
     let server;
 
-    if (opt.secure) {
-        server = Server.get(app);
-    } else {
+    // if (opt.secure) {
+    //     server = Server.get();
+    // } else {
         server = http.createServer();
-    }
+    // }
 
     const appCallback = app.callback();
 
     server.on('request', (req, res) => {
         // without a hostname, we won't know who the request is for
-
-        console.log('REQUEST', req)
-
         const hostname = req.headers.host;
         if (!hostname) {
             res.statusCode = 400;

@@ -4,7 +4,7 @@ const https = require('https')
 
 class Server {
 
-  static get(app) {
+  static get() {
 
     const baseCert = fs.readFileSync(process.env.BASE_CERT, 'utf8')
     const baseKey = fs.readFileSync(process.env.BASE_KEY, 'utf8')
@@ -40,13 +40,7 @@ class Server {
         key: baseKey,
         cert: baseCert
       }
-      const server = https.createServer(options); //, app); //, app.callback);
-      //     , function (req, res) {
-      //   res.end('Your dynamic SSL server worked!')
-      //   // Here you can put proxy server routing here to send the request
-      //   // to the application of your choosing, running on another port.
-      //   // node-http-proxy is a great npm package for this
-      // }); //.listen(443);
+      const server = https.createServer(options);
       return server;
     } catch (err) {
       console.error(err.message);
