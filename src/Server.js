@@ -17,6 +17,11 @@ class Server {
 
     const secureContext = {}
 
+    console.log({
+      key: this.baseKey,
+      cert: this.baseCert
+    })
+
     secureContext.base = tls.createSecureContext({
         key: this.baseKey,
         cert: this.baseCert
