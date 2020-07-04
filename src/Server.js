@@ -6,29 +6,22 @@ class Server {
 
   static get(app) {
 
-    if ('env' in process) {
-      this.baseCert = fs.readFileSync(process.env.BASE_CERT, 'utf8')
-      this.baseKey = fs.readFileSync(process.env.BASE_KEY, 'utf8')
-      this.wildcardCert = fs.readFileSync(process.env.WILDCARD_CERT, 'utf8')
-      this.wildcardKey = fs.readFileSync(process.env.WILDCARD_KEY, 'utf8')
-    } else {
-      throw new Error('No env found')
-    }
+    let baseCert = fs.readFileSync(process.env.BASE_CERT, 'utf8')
+    let baseKey = fs.readFileSync(process.env.BASE_KEY, 'utf8')
+    let wildcardCert = fs.readFileSync(process.env.WILDCARD_CERT, 'utf8')
+    let wildcardKey = fs.readFileSync(process.env.WILDCARD_KEY, 'utf8')
 
     const secureContext = {}
 
-    console.log({
-      key: this.baseKey,
-      cert: this.baseCert
-    })
+    console.log(baseKey, baseCert)
 
     secureContext.base = tls.createSecureContext({
-        key: this.baseKey,
-        cert: this.baseCert
-      })
+      key: baseKey,
+      cert: baseCert
+    })
     secureContext.wildcard = tls.createSecureContext({
-      key: this.wildcardKey,
-      cert: this.wildcardCert
+      key: wildcardKey,
+      cert: wildcardCert
     })
 
     try {
@@ -50,8 +43,8 @@ class Server {
             throw new Error('No keys/certificates for domain requested');
           }
         },
-        key: this.baseKey,
-        cert: this.baseCert
+        key: baseKey,
+        cert: baseCert
       }
       const server = https.createServer(options); //, app.callback);
       //     , function (req, res) {
