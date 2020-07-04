@@ -20,7 +20,7 @@ const argv = optimist
         describe: 'the url of the landing page, if any'
     })
     .options('address', {
-        // default: '0.0.0.0',
+        default: '0.0.0.0',
         describe: 'IP address to bind to'
     })
     .options('domain', {
@@ -45,9 +45,7 @@ const server = CreateServer({
     landing: argv.landing
 });
 
-server.listen(argv.port,
-    undefined, //argv.address,
-    () => {
+server.listen(argv.port, argv.address, () => {
     debug('server listening on port: %d', server.address().port);
 });
 
