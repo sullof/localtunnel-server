@@ -8,12 +8,13 @@ const {version} = require('../package.json');
 const {Crypto} = require('@secrez/core');
 
 const ClientManager = require('./lib/ClientManager');
+const Server = require('./Server')
 
 const allIds = [];
 
 const debug = Debug('localtunnel:server');
 
-module.exports =  function(opt) {
+module.exports = function(opt) {
     opt = opt || {};
 
     const validHosts = (opt.domain) ? [opt.domain] : undefined;
@@ -156,7 +157,13 @@ module.exports =  function(opt) {
         return;
     });
 
-    const server = http.createServer();
+    let server;
+
+    if (opt.secure) {
+        server = Server.get();
+    } else {
+        server = http.createServer();
+    }
 
     const appCallback = app.callback();
 

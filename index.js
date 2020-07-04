@@ -1,7 +1,4 @@
-
-require('localenv');
 const optimist = require('optimist');
-
 const log = require('book');
 const Debug = require('./src/utils/Debug');
 
