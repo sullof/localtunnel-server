@@ -11,18 +11,17 @@ class Server {
       this.baseKey = fs.readFileSync(process.env.BASE_KEY, 'utf8')
       this.wildcardCert = fs.readFileSync(process.env.WILDCARD_CERT, 'utf8')
       this.wildcardKey = fs.readFileSync(process.env.WILDCARD_KEY, 'utf8')
-      this.domain = process.env.DOMAIN
     } else {
       throw new Error('No env found')
     }
 
     const secureContext = {}
 
-    secureContext[this.domain] = tls.createSecureContext({
+    secureContext.base = tls.createSecureContext({
         key: this.baseKey,
         cert: this.baseCert
       })
-    secureContext[`*.${this.domain}`] = tls.createSecureContext({
+    secureContext.wildcard = tls.createSecureContext({
       key: this.wildcardKey,
       cert: this.wildcardCert
     })
@@ -30,18 +29,13 @@ class Server {
     try {
       var options = {
         SNICallback: function (domain, cb) {
-
-          console.log('domain', domain)
-
-          if (domain !== this.domain) {
-            domain = `*.${this.domain}`
-          }
-          if (secureContext[domain]) {
+          let what = domain.split('.').length === 2 ? 'base' : 'wildcard';
+          if (secureContext[what]) {
             if (cb) {
-              cb(null, secureContext[domain]);
+              cb(null, secureContext[what]);
             } else {
               // compatibility for older versions of node
-              return secureContext[domain];
+              return secureContext[what];
             }
           } else {
             throw new Error('No keys/certificates for domain requested');
