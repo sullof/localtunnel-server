@@ -29,6 +29,9 @@ class Server {
     try {
       var options = {
         SNICallback: function (domain, cb) {
+          
+          console.log('domain', domain)
+          
           let what = domain.split('.').length === 2 ? 'base' : 'wildcard';
           if (secureContext[what]) {
             if (cb) {
@@ -44,7 +47,7 @@ class Server {
         key: this.baseKey,
         cert: this.baseCert
       }
-      const server = https.createServer(options, app.callback);
+      const server = https.createServer(options); //, app.callback);
       //     , function (req, res) {
       //   res.end('Your dynamic SSL server worked!')
       //   // Here you can put proxy server routing here to send the request
