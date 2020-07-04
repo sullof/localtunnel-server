@@ -30,6 +30,9 @@ class Server {
     try {
       var options = {
         SNICallback: function (domain, cb) {
+
+          console.log('domain', domain)
+
           if (domain !== this.domain) {
             domain = `*.${this.domain}`
           }
