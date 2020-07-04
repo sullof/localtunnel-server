@@ -74,7 +74,10 @@ module.exports = function (opt) {
   });
 
   router.get('/api/v1/tunnel/new', async (ctx, next) => {
-    let reqId = ctx.qs('id');
+
+    console.log(ctx.request.query)
+
+    let reqId = ctx.request.query.id;
     if (reqId) {
       if (!Crypto.isBase58String(reqId) || reqId.length !== 7 || allIds[reqId]) {
         reqId = undefined
