@@ -163,9 +163,6 @@ module.exports =  function(opt) {
     server.on('request', (req, res) => {
         // without a hostname, we won't know who the request is for
 
-        console.log(req.headers)
-
-
         const hostname = req.headers.host;
         if (!hostname) {
             res.statusCode = 400;
