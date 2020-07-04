@@ -8,216 +8,206 @@ const {version} = require('../package.json');
 const {Crypto} = require('@secrez/core');
 
 const ClientManager = require('./lib/ClientManager');
-
-const allIds = [];
-
 const debug = Debug('localtunnel:server');
 
-module.exports =  function(opt) {
-    opt = opt || {};
+const allIds = {}
 
-    const validHosts = (opt.domain) ? [opt.domain] : undefined;
-    const myTldjs = tldjs.fromUserSettings({ validHosts });
-    const landingPage = opt.landing;
+function getRandomId() {
+  let id
+  for (; ;) {
+    id = Crypto.getRandomBase58String(7).toLowerCase()
+    if (!/^[a-zA-Z]+/.test(id)) {
+      continue
+    }
+    if (allIds) {
+      if (allIds[id]) {
+        continue
+      }
+      allIds[id] = true
+    }
+    return id
+  }
+}
 
-    function GetClientIdFromHostname(hostname) {
-        return myTldjs.getSubdomain(hostname);
+module.exports = function (opt) {
+  opt = opt || {};
+
+  const validHosts = (opt.domain) ? [opt.domain] : undefined;
+  const myTldjs = tldjs.fromUserSettings({validHosts});
+  const landingPage = opt.landing;
+
+  function GetClientIdFromHostname(hostname) {
+    return myTldjs.getSubdomain(hostname);
+  }
+
+  const manager = new ClientManager(opt);
+
+  const schema = opt.secure ? 'https' : 'http';
+
+  const app = new Koa();
+  const router = new Router();
+
+  router.get('/api/v1/status', async (ctx, next) => {
+    const stats = manager.stats;
+    ctx.body = {
+      tunnels: stats.tunnels,
+      mem: process.memoryUsage(),
+    };
+  });
+
+  router.get('/api/v1/tunnels/:id/status', async (ctx, next) => {
+    const clientId = ctx.params.id;
+    const client = manager.getClient(clientId);
+    if (!client) {
+      const result = {
+        status_code: 404,
+        message: 'Not found'
+      }
+      ctx.status = 404;
+      ctx.body = result;
+      return;
     }
 
-    const manager = new ClientManager(opt);
+    const stats = client.stats();
+    ctx.body = {
+      connected_sockets: stats.connectedSockets,
+    };
+  });
 
-    const schema = opt.secure ? 'https' : 'http';
+  router.get('/api/v1/tunnel/new', async (ctx, next) => {
+    let reqId = req.query.id;
+    if (reqId) {
+      if (!Crypto.isBase58String(req.query.id) || reqId.length !== 7 || allIds[reqId]) {
+        reqId = undefined
+      }
+    }
+    if (!reqId) {
+      reqId = getRandomId();
+    }
+    allIds.push(reqId);
+    debug('making new client with id %s', reqId);
 
-    const app = new Koa();
-    const router = new Router();
+    const info = await manager.newClient(reqId, debug);
+    const url = schema + '://' + info.id + '.' + ctx.request.host;
+    info.url = url;
+    ctx.body = info;
+  });
 
-    router.get('/api/v1/status', async (ctx, next) => {
-        const stats = manager.stats;
-        ctx.body = {
-            tunnels: stats.tunnels,
-            mem: process.memoryUsage(),
-        };
-    });
+  router.get('/api/v1/courier/:cmd', async (ctx, next) => {
 
-    router.get('/api/v1/tunnels/:id/status', async (ctx, next) => {
-        const clientId = ctx.params.id;
-        const client = manager.getClient(clientId);
-        if (!client) {
-            const result = {
-                status_code: 404,
-                message: 'Not found'
-            }
-            ctx.status = 404;
-            ctx.body = result;
-            return;
-        }
+    const hostname = ctx.request.headers.host;
+    const clientId = GetClientIdFromHostname(hostname);
 
-        const stats = client.stats();
-        ctx.body = {
-            connected_sockets: stats.connectedSockets,
-        };
-    });
+    if (!clientId) {
+      appCallback(req, res);
+      return;
+    }
 
-    router.get('/api/v1/tunnel/new', async (ctx, next) => {
-        const reqId = Crypto.getRandomId(allIds).toLowerCase();
-        allIds.push(reqId);
-        debug('making new client with id %s', reqId);
+    const client = manager.getClient(clientId);
 
-        const info = await manager.newClient(reqId, debug);
-        const url = schema + '://' + info.id + '.' + ctx.request.host;
-        info.url = url;
-        ctx.body = info;
-    });
+    if (!client) {
+      const result = {
+        status_code: 404,
+        message: 'Not found'
+      }
+      ctx.status = 404;
+      ctx.body = result;
+      return;
+    }
 
-    router.get('/api/v1/courier/:cmd', async (ctx, next) => {
+    client.handleRequest(ctx.request, ctx.response);
 
-        const hostname = ctx.request.headers.host;
-        const clientId = GetClientIdFromHostname(hostname);
+  })
 
-        if (!clientId) {
-            appCallback(req, res);
-            return;
-        }
+  app.use(router.routes());
+  app.use(router.allowedMethods());
 
-        const client = manager.getClient(clientId);
+  // root endpoint
+  app.use(async (ctx, next) => {
+    const path = ctx.request.path;
 
-        if (!client) {
-            const result = {
-                status_code: 404,
-                message: 'Not found'
-            }
-            ctx.status = 404;
-            ctx.body = result;
-            return;
-        }
+    const hostname = ctx.request.headers.host;
 
-        client.handleRequest(ctx.request, ctx.response);
+    // skip anything not on the root path
+    if (path !== '/' || GetClientIdFromHostname(hostname)) {
+      await next();
+      return;
+    }
+    if (landingPage) {
+      // no new client request, send to landing page
+      ctx.redirect(landingPage);
+    } else {
+      ctx.body = {
+        welcome_to: 'Secrez Hub',
+        version,
+        more_info_at: 'https://secrez.github.io/secrez'
+      }
+      return;
+    }
+  });
 
-    })
+  const server = http.createServer();
 
-    app.use(router.routes());
-    app.use(router.allowedMethods());
+  const appCallback = app.callback();
 
-    // root endpoint
-    app.use(async (ctx, next) => {
-        const path = ctx.request.path;
+  server.on('request', (req, res) => {
+    // without a hostname, we won't know who the request is for
 
-        const hostname = ctx.request.headers.host;
+    const hostname = req.headers.host;
+    if (!hostname) {
+      res.statusCode = 400;
+      let result = {
+        status_code: 400,
+        message: 'Host header is required'
+      }
+      res.end(JSON.stringify(result));
+      return;
+    }
 
-        // skip anything not on the root path
-        if (path !== '/' || GetClientIdFromHostname(hostname)) {
-            await next();
-            return;
-        }
-        if (landingPage) {
-            // no new client request, send to landing page
-            ctx.redirect(landingPage);
-        } else {
-            ctx.body = {
-                welcome_to: 'Secrez Hub',
-                version,
-                more_info_at: 'https://secrez.github.io/secrez'
-            }
-            return;
-        }
-    });
+    const clientId = GetClientIdFromHostname(hostname);
 
-    // anything after the / path is a request for a specific client name
-    // This is a backwards compat feature
-    app.use(async (ctx, next) => {
-        const parts = ctx.request.path.split('/');
+    if (!clientId) {
+      appCallback(req, res);
+      return;
+    }
 
-        // any request with several layers of paths is not allowed
-        // rejects /foo/bar
-        // allow /foo
-        if (parts.length !== 2) {
-            await next();
-            return;
-        }
+    const client = manager.getClient(clientId);
 
-        const reqId = parts[1];
+    if (!client) {
+      res.statusCode = 404;
+      let result = {
+        status_code: 404,
+        message: 'Not found'
+      }
+      res.end(JSON.stringify(result));
+      return;
+    }
 
-        // limit requested hostnames to 63 characters
-        if (! /^(?:[a-z0-9][a-z0-9\-]{4,63}[a-z0-9]|[a-z0-9]{4,63})$/.test(reqId)) {
-            const msg = 'Invalid subdomain. Subdomains must be lowercase and between 4 and 63 alphanumeric characters.';
-            ctx.status = 403;
-            ctx.body = {
-                message: msg,
-            };
-            return;
-        }
+    client.handleRequest(req, res);
+  });
 
-        debug('making new client with id %s', reqId);
-        const info = await manager.newClient(reqId);
+  server.on('upgrade', (req, socket, head) => {
+    const hostname = req.headers.host;
+    if (!hostname) {
+      socket.destroy();
+      return;
+    }
 
-        const url = schema + '://' + info.id + '.' + ctx.request.host;
-        info.url = url;
-        ctx.body = info;
-        return;
-    });
+    const clientId = GetClientIdFromHostname(hostname);
+    if (!clientId) {
+      socket.destroy();
+      return;
+    }
 
-    const server = http.createServer();
+    const client = manager.getClient(clientId);
 
-    const appCallback = app.callback();
+    if (!client) {
+      socket.destroy();
+      return;
+    }
 
-    server.on('request', (req, res) => {
-        // without a hostname, we won't know who the request is for
+    client.handleUpgrade(req, socket);
+  });
 
-        const hostname = req.headers.host;
-        if (!hostname) {
-            res.statusCode = 400;
-            let result = {
-                status_code: 400,
-                message: 'Host header is required'
-            }
-            res.end(JSON.stringify(result));
-            return;
-        }
-
-        const clientId = GetClientIdFromHostname(hostname);
-
-        if (!clientId) {
-            appCallback(req, res);
-            return;
-        }
-
-        const client = manager.getClient(clientId);
-
-        if (!client) {
-            res.statusCode = 404;
-            let result = {
-                status_code: 404,
-                message: 'Not found'
-            }
-            res.end(JSON.stringify(result));
-            return;
-        }
-
-        client.handleRequest(req, res);
-    });
-
-    server.on('upgrade', (req, socket, head) => {
-        const hostname = req.headers.host;
-        if (!hostname) {
-            socket.destroy();
-            return;
-        }
-
-        const clientId = GetClientIdFromHostname(hostname);
-        if (!clientId) {
-            socket.destroy();
-            return;
-        }
-
-        const client = manager.getClient(clientId);
-
-        if (!client) {
-            socket.destroy();
-            return;
-        }
-
-        client.handleUpgrade(req, socket);
-    });
-
-    return server;
+  return server;
 };
