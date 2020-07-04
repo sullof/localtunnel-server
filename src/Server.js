@@ -9,9 +9,6 @@ class Server {
 
     if ('env' in process) {
       this.baseCert = fs.readFileSync(process.env.BASE_CERT, 'utf8')
-
-      console.log(this.baseCert)
-
       this.baseKey = fs.readFileSync(process.env.BASE_KEY, 'utf8')
       this.wildcardCert = fs.readFileSync(process.env.WILDCARD_CERT, 'utf8')
       this.wildcardKey = fs.readFileSync(process.env.WILDCARD_KEY, 'utf8')
