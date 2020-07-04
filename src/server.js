@@ -75,7 +75,7 @@ module.exports = function (opt) {
 
   router.get('/api/v1/tunnel/new', async (ctx, next) => {
 
-    console.log(ctx.query)
+    console.log(ctx)
 
     let reqId = ctx.request.query.id;
     if (reqId) {
