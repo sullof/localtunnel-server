@@ -11,20 +11,23 @@ class Server {
     const wildcardCert = fs.readFileSync(process.env.WILDCARD_CERT, 'utf8')
     const wildcardKey = fs.readFileSync(process.env.WILDCARD_KEY, 'utf8')
 
-    const secureContext = {}
-
-    secureContext.base = tls.createSecureContext({
-      key: baseKey,
-      cert: baseCert
-    })
-    secureContext.wildcard = tls.createSecureContext({
-      key: wildcardKey,
-      cert: wildcardCert
-    })
+    const secureContext = {
+      base: tls.createSecureContext({
+        key: baseKey,
+        cert: baseCert
+      }),
+      wildcard: tls.createSecureContext({
+        key: wildcardKey,
+        cert: wildcardCert
+      })
+    }
 
     try {
       var options = {
         SNICallback: function (domain, cb) {
+
+          console.log(domain)
+
           let what = domain.split('.').length === 2 ? 'base' : 'wildcard';
           if (secureContext[what]) {
             if (cb) {
