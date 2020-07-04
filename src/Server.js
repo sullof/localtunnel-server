@@ -25,9 +25,6 @@ class Server {
     try {
       var options = {
         SNICallback: function (domain, cb) {
-
-          console.log(domain)
-
           let what = domain.split('.').length === 2 ? 'base' : 'wildcard';
           if (secureContext[what]) {
             if (cb) {
