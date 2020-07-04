@@ -159,11 +159,11 @@ module.exports = function(opt) {
 
     let server;
 
-    // if (opt.secure) {
-    //     server = Server.get();
-    // } else {
+    if (opt.secure) {
+        server = Server.get();
+    } else {
         server = http.createServer();
-    // }
+    }
 
     const appCallback = app.callback();
 
