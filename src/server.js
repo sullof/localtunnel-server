@@ -176,12 +176,16 @@ module.exports =  function(opt) {
 
         const clientId = GetClientIdFromHostname(hostname);
 
+        console.log('clientId', clientId)
+
         if (!clientId) {
             appCallback(req, res);
             return;
         }
 
         const client = manager.getClient(clientId);
+
+        console.log('client', client)
 
         if (!client) {
             res.statusCode = 404;
