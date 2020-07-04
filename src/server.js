@@ -59,7 +59,7 @@ module.exports =  function(opt) {
     });
 
     router.get('/api/v1/tunnel/new', async (ctx, next) => {
-        const reqId = Crypto.getRandomId(allIds);
+        const reqId = Crypto.getRandomId(allIds).toLowerCase();
         allIds.push(reqId);
         debug('making new client with id %s', reqId);
 
@@ -162,6 +162,7 @@ module.exports =  function(opt) {
 
     server.on('request', (req, res) => {
         // without a hostname, we won't know who the request is for
+
         const hostname = req.headers.host;
         if (!hostname) {
             res.statusCode = 400;
@@ -175,12 +176,16 @@ module.exports =  function(opt) {
 
         const clientId = GetClientIdFromHostname(hostname);
 
+        console.log('clientId', clientId)
+
         if (!clientId) {
             appCallback(req, res);
             return;
         }
 
         const client = manager.getClient(clientId);
+
+        console.log('client', client)
 
         if (!client) {
             res.statusCode = 404;
