@@ -90,11 +90,6 @@ class ClientManager {
   }
 
   getClient(id) {
-
-    console.log(id)
-
-    console.log(this.clients)
-
     return this.clients[id];
   }
 }
