@@ -23,7 +23,6 @@ function getRandomId() {
       if (allIds[id]) {
         continue
       }
-      allIds[id] = true
     }
     return id
   }
@@ -84,13 +83,13 @@ module.exports = function (opt) {
     if (!reqId) {
       reqId = getRandomId();
     }
-    allIds.push(reqId);
     debug('making new client with id %s', reqId);
 
     const info = await manager.newClient(reqId, debug);
     const url = schema + '://' + info.id + '.' + ctx.request.host;
     info.url = url;
     ctx.body = info;
+    allIds[reqId] = true;
   });
 
   router.get('/api/v1/courier/:cmd', async (ctx, next) => {
