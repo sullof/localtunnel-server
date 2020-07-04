@@ -13,7 +13,7 @@ const argv = optimist
         describe: 'use this flag to indicate proxy over https'
     })
     .options('port', {
-        default: '9494',
+        default: '443',
         describe: 'listen on this port for outside requests'
     })
     .options('landing', {
