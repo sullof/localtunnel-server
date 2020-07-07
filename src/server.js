@@ -5,20 +5,18 @@ const Debug = require('./utils/Debug');
 const http = require('http');
 const Router = require('koa-router');
 const {version} = require('../package.json');
-const {Crypto} = require('@secrez/core');
+const {Crypto, Secrez} = require('@secrez/core');
 
 const ClientManager = require('./lib/ClientManager');
 const debug = Debug('localtunnel:server');
 
 const allIds = {}
 
-function getRandomId() {
+function getRandomId(publicKey) {
   let id
+  let prefix = Crypto.toBase58(publicKey).substring(0, 4)
   for (; ;) {
-    id = Crypto.getRandomBase58String(7).toLowerCase()
-    if (!/^[a-zA-Z]+/.test(id)) {
-      continue
-    }
+    id = (prefix + Crypto.getRandomId()).toLowerCase()
     if (allIds) {
       if (allIds[id]) {
         continue
@@ -74,14 +72,39 @@ module.exports = function (opt) {
   });
 
   router.get('/api/v1/tunnel/new', async (ctx, next) => {
-    let reqId = ctx.request.query.id;
+    let {reqId, salt, publicKey, signature} = ctx.request.query;
+    if (!Secrez.isValidPublicKey(publicKey)) {
+      const result = {
+        status_code: 400,
+        message: 'Wrong public key'
+      }
+      ctx.status = 400;
+      ctx.body = result;
+      return;
+
+    }
+    if (Crypto.verifySignature([reqId || '', publicKey, salt].join(''), signature, publicKey)) {
+      const result = {
+        status_code: 400,
+        message: 'Wrong signature'
+      }
+      ctx.status = 400;
+      ctx.body = result;
+      return;
+    }
     if (reqId) {
-      if (!Crypto.isBase58String(reqId) || reqId.length !== 7 || allIds[reqId]) {
-        reqId = undefined
+      if (!Crypto.isBase58String(reqId) || reqId.length !== 8 || allIds[reqId]) {
+        const result = {
+          status_code: 400,
+          message: 'Wrong requested id'
+        }
+        ctx.status = 400;
+        ctx.body = result;
+        return;
       }
     }
     if (!reqId) {
-      reqId = getRandomId();
+      reqId = getRandomId(publicKey);
     }
     debug('making new client with id %s', reqId);
 

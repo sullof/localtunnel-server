@@ -1,6 +1,6 @@
 # localtunnel-server
 
-[![Build Status](https://travis-ci.org/localtunnel/server.svg?branch=master)](https://travis-ci.org/localtunnel/server)
+**This is a fork of [Localtunnel Server](https://github.com/localtunnel/server) with applied restriction in order to use it for [Secrez](https://github.com/secrez/secrez).**
 
 localtunnel exposes your localhost to the world for easy testing and sharing! No need to mess with DNS or deploy just to have others test out your changes.
 
